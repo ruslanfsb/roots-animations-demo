@@ -57,7 +57,8 @@
    <script src="/roots-animations.js" defer></script>
    ```
 
-Больше ничего менять не нужно: файлы опираются на текущие классы сайта (`.item`, `.main_category`, `.story`, `.badge.sale`, `.favorite`, `.button_buy`, `.cart_top`, `#popular_toggler`, `.main_slider .owl-item.active`, `#personal_imgs`, `.about_app`).\nДля заполняющейся полоски слайдера добавьте к `.main_slider` атрибут `data-ra-autoplay` с задержкой автопрокрутки owl.carousel в миллисекундах.
+Больше ничего менять не нужно: файлы опираются на текущие классы сайта (`.item`, `.main_category`, `.story`, `.badge.sale`, `.favorite`, `.button_buy`, `.cart_top`, `#popular_toggler`, `.main_slider .owl-item.active`, `#personal_imgs`, `.about_app`).
+Для заполняющейся полоски слайдера добавьте к `.main_slider` атрибут `data-ra-autoplay` с задержкой автопрокрутки owl.carousel в миллисекундах.
 Чтобы временно выключить анимации без удаления файлов, добавьте `<html data-ra-off>`.
 
 ## Как открыть демо по ссылке
