@@ -1,0 +1,191 @@
+/*
+ * Roots Flowers — анимации витрины.
+ * Только transform и opacity (плюс цвет названия), без внешних библиотек.
+ * Всё, что прячет элементы, работает только под классом .ra, который ставит roots-animations.js:
+ * если скрипт не загрузился, страница выглядит как обычно.
+ */
+
+:root {
+  --ra-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ra-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ra-accent: #be8d71;
+}
+
+/* ---------- Появление при прокрутке ---------- */
+
+.ra [data-ra-reveal] {
+  opacity: 0;
+  transform: translate3d(0, 28px, 0);
+  transition: opacity 0.8s var(--ra-ease), transform 0.9s var(--ra-ease-out);
+  transition-delay: var(--ra-delay, 0ms);
+}
+.ra [data-ra-reveal].ra-in {
+  opacity: 1;
+  transform: none;
+}
+.ra .story[data-ra-reveal] { transform: translate3d(0, 0, 0) scale(0.92); }
+.ra .story[data-ra-reveal].ra-in { transform: none; }
+
+/* ---------- Главный слайдер: текст и кнопка активного слайда ---------- */
+/* Анимация перезапускается сама, когда слайд получает класс .active. */
+
+@keyframes ra-rise {
+  from { opacity: 0; transform: translate3d(0, 18px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+
+html:not([data-ra-off]) .main_slider .owl-item.active .h_slider {
+  animation: ra-rise 1s var(--ra-ease-out) 0.15s both;
+}
+html:not([data-ra-off]) .main_slider .owl-item.active .h_slider.bottom {
+  animation-delay: 0.3s;
+}
+html:not([data-ra-off]) .main_slider .owl-item.active .h_button {
+  animation: ra-rise 0.9s var(--ra-ease-out) 0.45s both;
+}
+
+/* ---------- Карточка товара ---------- */
+
+@media (hover: hover) and (pointer: fine) {
+  .ra .item .img_wrap img {
+    transition: transform 0.8s var(--ra-ease-out);
+    transform-origin: 50% 60%;
+  }
+  .ra .item:hover .img_wrap img {
+    transform: scale(1.045);
+  }
+
+  /* Оверлей с составом: мягко проявляется, содержимое поднимается снизу. */
+  .ra .item .hover {
+    background: rgba(41, 41, 41, 0.86);
+    transition: opacity 0.45s var(--ra-ease);
+  }
+  .ra .item .hover > * {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0);
+    transition: opacity 0.45s var(--ra-ease), transform 0.6s var(--ra-ease-out);
+  }
+  .ra .item:hover .hover > * {
+    opacity: 1;
+    transform: none;
+  }
+  .ra .item:hover .hover > :nth-child(2) { transition-delay: 0.05s; }
+  .ra .item:hover .hover > :nth-child(3) { transition-delay: 0.1s; }
+
+  .ra .item .title {
+    transition: color 0.35s var(--ra-ease);
+  }
+  .ra .item:hover .title {
+    color: var(--ra-accent);
+    text-decoration: none;
+  }
+}
+
+/* ---------- Кнопки «В корзину» / «Быстрый заказ» ---------- */
+
+.ra .button_buy,
+.ra .button_fast,
+.ra .buy_button {
+  transition-property: color, background-color, border-color, transform;
+  transition-duration: 0.25s;
+  transition-timing-function: var(--ra-ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ra .button_buy:hover,
+  .ra .button_fast:hover,
+  .ra .buy_button:hover {
+    transform: translate3d(0, -2px, 0);
+  }
+}
+.ra .button_buy:active,
+.ra .button_fast:active,
+.ra .buy_button:active {
+  transform: translate3d(0, 0, 0) scale(0.96);
+  transition-duration: 0.08s;
+}
+
+/* Иконка корзины в шапке подпрыгивает после добавления. */
+@keyframes ra-bump {
+  0%   { transform: none; }
+  30%  { transform: translate3d(0, -5px, 0) scale(1.12); }
+  55%  { transform: translate3d(0, 0, 0) scale(0.96); }
+  75%  { transform: translate3d(0, -1px, 0) scale(1.03); }
+  100% { transform: none; }
+}
+.ra .cart_top.ra-bump {
+  animation: ra-bump 0.7s var(--ra-ease);
+}
+
+/* ---------- Сердечко избранного ---------- */
+
+@keyframes ra-heart {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.22); }
+  60%  { transform: scale(0.94); }
+  100% { transform: scale(1); }
+}
+@keyframes ra-ring {
+  from { opacity: 0.55; transform: scale(0.7); }
+  to   { opacity: 0;    transform: scale(1.9); }
+}
+.ra .favorite.ra-pop {
+  animation: ra-heart 0.5s var(--ra-ease);
+}
+.ra .favorite .ra-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid var(--ra-accent);
+  pointer-events: none;
+  animation: ra-ring 0.6s var(--ra-ease-out) forwards;
+}
+
+/* ---------- Бейдж скидки: редкая мягкая пульсация ---------- */
+
+@keyframes ra-badge {
+  0%, 86%, 100% { transform: scale(1); }
+  91%           { transform: scale(1.08); }
+  95%           { transform: scale(0.99); }
+}
+.ra .badge.sale,
+.ra .badge.big_sale {
+  animation: ra-badge 7s var(--ra-ease) infinite;
+  animation-delay: var(--ra-badge-delay, 0s);
+}
+
+/* ---------- Вкладки «Акции / Популярное / Новинки» ---------- */
+
+.ra .ra-tab-in .item {
+  animation: ra-rise 0.6s var(--ra-ease-out) both;
+}
+.ra .ra-tab-in .item:nth-child(2) { animation-delay: 0.07s; }
+.ra .ra-tab-in .item:nth-child(3) { animation-delay: 0.14s; }
+.ra .ra-tab-in .item:nth-child(4) { animation-delay: 0.21s; }
+.ra .ra-tab-in .item:nth-child(5) { animation-delay: 0.28s; }
+.ra .ra-tab-in .item:nth-child(6) { animation-delay: 0.35s; }
+.ra .ra-tab-in .item:nth-child(7) { animation-delay: 0.42s; }
+.ra .ra-tab-in .item:nth-child(n + 8) { animation-delay: 0.49s; }
+
+/* ---------- Без движения для тех, кто его отключил ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-ra-off]) .main_slider .owl-item.active .h_slider,
+  html:not([data-ra-off]) .main_slider .owl-item.active .h_button,
+  .ra .badge.sale,
+  .ra .badge.big_sale,
+  .ra .favorite.ra-pop,
+  .ra .cart_top.ra-bump,
+  .ra .ra-tab-in .item {
+    animation: none;
+  }
+  .ra [data-ra-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .ra .item .img_wrap img,
+  .ra .item .hover > * {
+    transition: none;
+    transform: none;
+  }
+}
