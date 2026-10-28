@@ -41,17 +41,37 @@
 /* В копии нет скриптов сайта: баннер cookie и всплывающие окна не нужны. */
 .cookie_wrap { display: none !important; }
 
-/* Главный слайдер без owl.carousel: слайды в ряд, сдвиг через transform. */
-.main_slider .owl-stage-outer { overflow: hidden; }
-.main_slider .owl-stage {
+/* Слайдеры без owl.carousel (главный и «Соберем заказ»): слайды в ряд, сдвиг через transform. */
+.rd-slider .owl-stage-outer { overflow: hidden; }
+.rd-slider .owl-stage {
   display: flex;
   width: 100% !important;
   transition: transform 0.9s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
-.main_slider .owl-item {
+.rd-slider .owl-item {
   float: none;
   flex: 0 0 100%;
   width: 100% !important;
+}
+
+/* Блог: центральная карточка крупнее, как на сайте. */
+.rd-center .owl-stage-outer { overflow: hidden; }
+.rd-center .owl-stage {
+  display: flex;
+  align-items: flex-start;
+  width: max-content !important;
+  margin-left: 0 !important;
+  transition: transform 0.6s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.rd-center .owl-item { float: none; flex: 0 0 auto; margin-right: 12px; }
+.rd-center .owl-item:last-child { display: block; }
+
+/* Шторка выбора размера и окно города открываются скриптами сайта — в демо они не нужны. */
+#favorites_wrap { display: none !important; }
+
+/* На телефоне и планшете сайт показывает все три подборки друг под другом. */
+@media (max-width: 1024px) {
+  #popular_catalogs .popular_catalog { display: flex !important; }
 }
 
 /* Второстепенные карусели — простая горизонтальная прокрутка. */
@@ -71,7 +91,6 @@
 .rd-scroller .owl-item {
   float: none;
   flex: 0 0 auto;
-  max-width: 86vw;
   scroll-snap-align: start;
 }
 
