@@ -1,6 +1,7 @@
 /*
- * Roots Flowers — анимации витрины.
- * Только transform и opacity (плюс цвет названия), без внешних библиотек.
+ * Roots Flowers — анимации главной страницы.
+ * Раскадровка: Figma «Roots Flowers — Motion концепция главной».
+ * Движение — через transform / translate / scale / opacity (шторка плиток — clip-path).
  * Всё, что прячет элементы, работает только под классом .ra, который ставит roots-animations.js:
  * если скрипт не загрузился, страница выглядит как обычно.
  */
@@ -9,9 +10,183 @@
   --ra-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
   --ra-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ra-accent: #be8d71;
+  --ra-word-step: 70ms;
 }
 
-/* ---------- Появление при прокрутке ---------- */
+/* ---------- 01. Живой фон ---------- */
+
+.ra-ambient {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.ra-ambient span {
+  position: absolute;
+  width: 70vmax;
+  height: 70vmax;
+  border-radius: 50%;
+  opacity: 0.5;
+  will-change: transform;
+}
+.ra-ambient span:nth-child(1) {
+  top: -35vmax;
+  left: -25vmax;
+  background: radial-gradient(closest-side, rgba(243, 209, 214, 0.9), rgba(243, 209, 214, 0));
+  animation: ra-drift-1 48s ease-in-out infinite alternate;
+}
+.ra-ambient span:nth-child(2) {
+  top: 10vh;
+  right: -35vmax;
+  background: radial-gradient(closest-side, rgba(221, 229, 214, 0.9), rgba(221, 229, 214, 0));
+  animation: ra-drift-2 56s ease-in-out infinite alternate;
+}
+.ra-ambient span:nth-child(3) {
+  bottom: -40vmax;
+  left: 20vw;
+  background: radial-gradient(closest-side, rgba(253, 228, 214, 0.95), rgba(253, 228, 214, 0));
+  animation: ra-drift-3 62s ease-in-out infinite alternate;
+}
+@keyframes ra-drift-1 { to { transform: translate3d(18vw, 22vh, 0) scale(1.15); } }
+@keyframes ra-drift-2 { to { transform: translate3d(-22vw, 30vh, 0) scale(0.9); } }
+@keyframes ra-drift-3 { to { transform: translate3d(-15vw, -25vh, 0) scale(1.1); } }
+
+/* Тонкая линия прогресса прокрутки. */
+.ra-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: 100002;
+  background: var(--ra-accent);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  pointer-events: none;
+}
+
+/* ---------- Тексты по словам из-под маски ---------- */
+
+.ra ra-w {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  /* запас под выносные элементы букв, чтобы маска их не срезала */
+  padding: 0.08em 0.02em 0.14em;
+  margin: -0.08em -0.02em -0.14em;
+}
+.ra ra-wi {
+  display: inline-block;
+}
+
+@keyframes ra-word {
+  from { transform: translate3d(0, 115%, 0); }
+  to   { transform: none; }
+}
+
+/* Заголовки разделов: прячем только то, что ниже экрана, раскрываем при появлении. */
+.ra .ra-words:not(.ra-words-in) ra-wi {
+  transform: translate3d(0, 115%, 0);
+}
+.ra .ra-words.ra-words-in ra-wi {
+  animation: ra-word 0.9s var(--ra-ease-out) both;
+  animation-delay: calc(var(--i, 0) * var(--ra-word-step));
+}
+
+/* Курсивные слова получают акцентную линию после раскрытия. */
+.ra .ra-words i,
+.ra .main_slider .h_slider i {
+  position: relative;
+}
+.ra .ra-words i::after,
+.ra .main_slider .h_slider.ra-split i::after {
+  content: "";
+  position: absolute;
+  left: 0.05em;
+  right: 0.05em;
+  bottom: 0.06em;
+  height: 1px;
+  background: var(--ra-accent);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 0.7s var(--ra-ease-out) 0.55s;
+}
+.ra .ra-words.ra-words-in i::after,
+.ra .main_slider .owl-item.active .h_slider.ra-split i::after {
+  transform: scaleX(1);
+}
+
+/* ---------- 02–04. Первый экран ---------- */
+
+/* Пока скрипт не разбил заголовок на слова — плавный подъём целиком. */
+html:not([data-ra-off]) .main_slider .owl-item.active .h_slider:not(.ra-split) {
+  animation: ra-rise 1s var(--ra-ease-out) 0.15s both;
+}
+.ra .main_slider .owl-item.active .h_slider.ra-split ra-wi {
+  animation: ra-word 0.95s var(--ra-ease-out) both;
+  animation-delay: calc(0.15s + var(--i, 0) * var(--ra-word-step));
+}
+html:not([data-ra-off]) .main_slider .owl-item.active .h_button {
+  animation: ra-rise 0.9s var(--ra-ease-out) 0.55s both;
+}
+@keyframes ra-rise {
+  from { opacity: 0; transform: translate3d(0, 18px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Фото: медленно «садится» на место + уходит медленнее страницы при прокрутке. */
+.ra .main_slider .img {
+  position: relative;
+  overflow: hidden;
+}
+.ra .main_slider .img::before {
+  content: "";
+  position: absolute;
+  inset: -6% 0;
+  background: inherit;
+  translate: 0 var(--ra-py, 0px);
+}
+.ra .main_slider .owl-item.active .img::before {
+  animation: ra-kenburns 7s var(--ra-ease-out) both;
+}
+@keyframes ra-kenburns {
+  from { scale: 1.1; }
+  to   { scale: 1; }
+}
+
+/* Стрелка «Смотреть» тянется вправо при наведении. */
+.ra .h_button::after {
+  transition: transform 0.35s var(--ra-ease-out);
+}
+.ra .h_button:hover::after,
+.ra .main_category:hover .h_button::after {
+  transform: translate3d(4px, 0, 0);
+}
+
+/* Полоски под слайдером заполняются, пока идёт показ (если известна длительность автопрокрутки:
+   атрибут data-ra-autoplay="мс" на .main_slider). */
+.ra .main_slider[data-ra-autoplay] .owl-dot {
+  position: relative;
+  overflow: hidden;
+}
+.ra .main_slider[data-ra-autoplay] .owl-dot.active {
+  background: var(--ra-dot-bg);
+}
+.ra .main_slider[data-ra-autoplay] .owl-dot.active::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--ra-dot-fg);
+  transform-origin: 0 50%;
+  animation: ra-fill var(--ra-autoplay) linear both;
+}
+@keyframes ra-fill {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* ---------- Появление блоков при прокрутке ---------- */
 
 .ra [data-ra-reveal] {
   opacity: 0;
@@ -23,39 +198,85 @@
   opacity: 1;
   transform: none;
 }
-.ra .story[data-ra-reveal] { transform: translate3d(0, 0, 0) scale(0.92); }
+
+/* 05. Сторис: появление с увеличением и вращающееся кольцо. */
+.ra .story[data-ra-reveal] { transform: scale(0.85); }
 .ra .story[data-ra-reveal].ra-in { transform: none; }
+.ra .stories.snapgram .story:not(.seen) > .item-link > .item-preview {
+  position: relative;
+}
+.ra .stories.snapgram .story:not(.seen) > .item-link > .item-preview::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  background: conic-gradient(from 0deg, #ee583f, #d92d77, #bd3381, #be8d71, #ee583f);
+  animation: ra-spin 8s linear infinite;
+}
+.ra .stories.snapgram .story > .item-link > .item-preview img {
+  position: relative;
+}
+@keyframes ra-spin { to { transform: rotate(1turn); } }
 
-/* ---------- Главный слайдер: текст и кнопка активного слайда ---------- */
-/* Анимация перезапускается сама, когда слайд получает класс .active. */
-
-@keyframes ra-rise {
-  from { opacity: 0; transform: translate3d(0, 18px, 0); }
-  to   { opacity: 1; transform: none; }
+/* 06. Плитки категорий: шторка снизу вверх, при наведении — подъём. */
+.ra #main_categories .main_category[data-ra-reveal] {
+  opacity: 1;
+  transform: none;
+  clip-path: inset(100% 0 0 0 round var(--ra-tile-r));
+  transition: clip-path 1s var(--ra-ease-out);
+  transition-delay: var(--ra-delay, 0ms);
+}
+.ra #main_categories .main_category[data-ra-reveal].ra-in {
+  clip-path: inset(0 0 0 0 round var(--ra-tile-r));
+}
+#main_categories { --ra-tile-r: 32px; }
+@media (max-width: 1024px) {
+  #main_categories { --ra-tile-r: 16px; }
+}
+@media (hover: hover) and (pointer: fine) {
+  .ra #main_categories .main_category {
+    transition: transform 0.45s var(--ra-ease-out);
+  }
+  .ra #main_categories .main_category:not([data-ra-reveal]):hover {
+    transform: translate3d(0, -4px, 0);
+  }
+  .ra #main_categories .main_category .title {
+    transition: transform 0.45s var(--ra-ease-out);
+  }
+  .ra #main_categories .main_category:hover .title {
+    transform: translate3d(6px, 0, 0);
+  }
 }
 
-html:not([data-ra-off]) .main_slider .owl-item.active .h_slider {
-  animation: ra-rise 1s var(--ra-ease-out) 0.15s both;
-}
-html:not([data-ra-off]) .main_slider .owl-item.active .h_slider.bottom {
-  animation-delay: 0.3s;
-}
-html:not([data-ra-off]) .main_slider .owl-item.active .h_button {
-  animation: ra-rise 0.9s var(--ra-ease-out) 0.45s both;
-}
-
-/* ---------- Карточка товара ---------- */
+/* ---------- 07. Карточка букета ---------- */
 
 @media (hover: hover) and (pointer: fine) {
+  .ra .item .img_wrap {
+    transition: transform 0.6s var(--ra-ease-out);
+    transform-style: preserve-3d;
+  }
+  .ra .item .img_wrap.ra-tilting {
+    transition: transform 0.12s linear;
+  }
+  /* Мягкий блик, который следует за курсором. */
+  .ra .item .img_wrap::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: 32px;
+    pointer-events: none;
+    background: radial-gradient(circle at var(--gx, 50%) var(--gy, 0%), rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 55%);
+    opacity: 0;
+    transition: opacity 0.45s var(--ra-ease);
+  }
+  .ra .item:hover .img_wrap::after { opacity: 1; }
+
   .ra .item .img_wrap img {
     transition: transform 0.8s var(--ra-ease-out);
     transform-origin: 50% 60%;
   }
-  .ra .item:hover .img_wrap img {
-    transform: scale(1.045);
-  }
+  .ra .item:hover .img_wrap img { transform: scale(1.045); }
 
-  /* Оверлей с составом: мягко проявляется, содержимое поднимается снизу. */
   .ra .item .hover {
     background: rgba(41, 41, 41, 0.86);
     transition: opacity 0.45s var(--ra-ease);
@@ -65,23 +286,25 @@ html:not([data-ra-off]) .main_slider .owl-item.active .h_button {
     transform: translate3d(0, 16px, 0);
     transition: opacity 0.45s var(--ra-ease), transform 0.6s var(--ra-ease-out);
   }
-  .ra .item:hover .hover > * {
-    opacity: 1;
-    transform: none;
-  }
+  .ra .item:hover .hover > * { opacity: 1; transform: none; }
   .ra .item:hover .hover > :nth-child(2) { transition-delay: 0.05s; }
   .ra .item:hover .hover > :nth-child(3) { transition-delay: 0.1s; }
 
-  .ra .item .title {
-    transition: color 0.35s var(--ra-ease);
-  }
-  .ra .item:hover .title {
-    color: var(--ra-accent);
-    text-decoration: none;
-  }
+  .ra .item .title { transition: color 0.35s var(--ra-ease); }
+  .ra .item:hover .title { color: var(--ra-accent); text-decoration: none; }
 }
 
-/* ---------- Кнопки «В корзину» / «Быстрый заказ» ---------- */
+/* ---------- 09. Глубина: «Соберем заказ» и приложение ---------- */
+
+.ra .about_app .right img {
+  animation: ra-float 6s ease-in-out infinite alternate;
+}
+@keyframes ra-float {
+  from { translate: 0 -6px; rotate: -0.6deg; }
+  to   { translate: 0 6px;  rotate: 0.6deg; }
+}
+
+/* ---------- 10. Микро-отклики ---------- */
 
 .ra .button_buy,
 .ra .button_fast,
@@ -100,23 +323,18 @@ html:not([data-ra-off]) .main_slider .owl-item.active .h_button {
 .ra .button_buy:active,
 .ra .button_fast:active,
 .ra .buy_button:active {
-  transform: translate3d(0, 0, 0) scale(0.96);
+  transform: scale(0.96);
   transition-duration: 0.08s;
 }
 
-/* Иконка корзины в шапке подпрыгивает после добавления. */
 @keyframes ra-bump {
   0%   { transform: none; }
   30%  { transform: translate3d(0, -5px, 0) scale(1.12); }
-  55%  { transform: translate3d(0, 0, 0) scale(0.96); }
+  55%  { transform: scale(0.96); }
   75%  { transform: translate3d(0, -1px, 0) scale(1.03); }
   100% { transform: none; }
 }
-.ra .cart_top.ra-bump {
-  animation: ra-bump 0.7s var(--ra-ease);
-}
-
-/* ---------- Сердечко избранного ---------- */
+.ra .cart_top.ra-bump { animation: ra-bump 0.7s var(--ra-ease); }
 
 @keyframes ra-heart {
   0%   { transform: scale(1); }
@@ -128,9 +346,7 @@ html:not([data-ra-off]) .main_slider .owl-item.active .h_button {
   from { opacity: 0.55; transform: scale(0.7); }
   to   { opacity: 0;    transform: scale(1.9); }
 }
-.ra .favorite.ra-pop {
-  animation: ra-heart 0.5s var(--ra-ease);
-}
+.ra .favorite.ra-pop { animation: ra-heart 0.5s var(--ra-ease); }
 .ra .favorite .ra-ring {
   position: absolute;
   inset: 0;
@@ -139,8 +355,6 @@ html:not([data-ra-off]) .main_slider .owl-item.active .h_button {
   pointer-events: none;
   animation: ra-ring 0.6s var(--ra-ease-out) forwards;
 }
-
-/* ---------- Бейдж скидки: редкая мягкая пульсация ---------- */
 
 @keyframes ra-badge {
   0%, 86%, 100% { transform: scale(1); }
@@ -153,11 +367,18 @@ html:not([data-ra-off]) .main_slider .owl-item.active .h_button {
   animation-delay: var(--ra-badge-delay, 0s);
 }
 
-/* ---------- Вкладки «Акции / Популярное / Новинки» ---------- */
-
-.ra .ra-tab-in .item {
-  animation: ra-rise 0.6s var(--ra-ease-out) both;
+/* «+» у цены поворачивается при наведении на карточку. */
+.ra .item .variant_price::after,
+.ra .buy_button .plus {
+  transition: transform 0.45s var(--ra-ease-out);
 }
+.ra .item:hover .variant_price::after,
+.ra .buy_button:hover .plus {
+  transform: rotate(90deg);
+}
+
+/* Вкладки «Акции / Популярное / Новинки»: товары по очереди. */
+.ra .ra-tab-in .item { animation: ra-rise 0.6s var(--ra-ease-out) both; }
 .ra .ra-tab-in .item:nth-child(2) { animation-delay: 0.07s; }
 .ra .ra-tab-in .item:nth-child(3) { animation-delay: 0.14s; }
 .ra .ra-tab-in .item:nth-child(4) { animation-delay: 0.21s; }
@@ -169,23 +390,26 @@ html:not([data-ra-off]) .main_slider .owl-item.active .h_button {
 /* ---------- Без движения для тех, кто его отключил ---------- */
 
 @media (prefers-reduced-motion: reduce) {
+  .ra-ambient,
+  .ra-progress { display: none; }
   html:not([data-ra-off]) .main_slider .owl-item.active .h_slider,
   html:not([data-ra-off]) .main_slider .owl-item.active .h_button,
+  .ra .main_slider .owl-item.active .img::before,
+  .ra ra-wi,
+  .ra .stories .item-preview::before,
+  .ra .about_app .right img,
   .ra .badge.sale,
   .ra .badge.big_sale,
   .ra .favorite.ra-pop,
   .ra .cart_top.ra-bump,
   .ra .ra-tab-in .item {
-    animation: none;
+    animation: none !important;
   }
+  .ra .ra-words ra-wi { transform: none !important; }
   .ra [data-ra-reveal] {
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
-  .ra .item .img_wrap img,
-  .ra .item .hover > * {
-    transition: none;
-    transform: none;
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+    transition: none !important;
   }
 }

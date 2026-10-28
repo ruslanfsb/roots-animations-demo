@@ -60,10 +60,8 @@
     }
     bindNav(el, function (dir) { go(index + dir); restart(); });
     dots.forEach(function (d, k) { d.addEventListener('click', function () { go(k); restart(); }); });
-    if (autoplay) {
-      el.addEventListener('mouseenter', function () { clearInterval(timer); });
-      el.addEventListener('mouseleave', restart);
-    }
+    // Длительность показа нужна анимациям, чтобы заполнять полоску активного слайда.
+    if (autoplay) el.setAttribute('data-ra-autoplay', '6500');
     go(index);
     restart();
   }
