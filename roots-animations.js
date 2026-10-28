@@ -177,7 +177,10 @@
     function addParallax(el, speed, mode) { parallax.push({ el: el, speed: speed, mode: mode, on: false }); }
     $$('.main_slider .img').forEach(function (el) { addParallax(el, 0.12, 'hero'); });
     $$('#personal_imgs .img').forEach(function (el, i) { addParallax(el, [0.05, 0.1, 0.16][i % 3], 'translate'); });
-    $$('.about_app .right').forEach(function (el) { addParallax(el, 0.08, 'translate'); });
+    // На телефоне макет приложения стоит сразу под кнопками магазинов — там только «парение».
+    if (window.matchMedia('(min-width: 1025px)').matches) {
+      $$('.about_app .right').forEach(function (el) { addParallax(el, 0.08, 'translate'); });
+    }
 
     var pObserver = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) {
